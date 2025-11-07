@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Voting System</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Poppins and Lato -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Custom styles and font definitions */
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #F0F2F5;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+        }
+        /* Custom class for smooth transitions */
+        .view {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Style for selected candidate card */
+        .candidate-card.selected {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Main Application Container -->
+    <div id="app" class="min-h-screen">
+
+        <!-- Login View -->
+        <section id="login-view" class="view flex items-center justify-center min-h-screen bg-cover bg-center" style="background-image: url('https://placehold.co/1920x1080/003366/FFFFFF?text=College+Campus');">
+            <div class="bg-white/90 backdrop-blur-sm p-8 md:p-12 rounded-2xl shadow-2xl w-11/12 max-w-md text-center">
+                <i class="fas fa-vote-yea fa-3x text-blue-800 mb-4"></i>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Student Voting Portal</h1>
+                <p class="text-gray-600 mb-8">Securely cast your vote.</p>
+                <form id="login-form">
+                    <div class="mb-4 text-left">
+                        <label for="student-id" class="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
+                        <input type="text" id="student-id" value="S12345" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="e.g., S12345">
+                    </div>
+                    <div class="mb-6 text-left">
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="password" value="password" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg">
+                        Login
+                    </button>
+                    <p class="text-xs text-gray-500 mt-4">
+                        <a href="#" class="hover:underline">Forgot Password?</a>
+                    </p>
+                </form>
+            </div>
+        </section>
+
+        <!-- Main App View (Dashboard, Ballot, Results) -->
+        <div id="main-app-view" class="view">
+            <!-- Header/Navbar -->
+            <header class="bg-white shadow-md sticky top-0 z-40">
+                <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-vote-yea fa-2x text-blue-800"></i>
+                        <h1 class="text-xl font-bold text-blue-800 hidden sm:block">CollegeVote</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button data-view="dashboard-view" class="nav-link text-gray-600 hover:text-blue-800 font-semibold">Dashboard</button>
+                        <button data-view="results-view" class="nav-link text-gray-600 hover:text-blue-800 font-semibold">Results</button>
+                        <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition">Logout</button>
+                    </div>
+                </nav>
+            </header>
+
+            <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+                <!-- Dashboard View -->
+                <section id="dashboard-view" class="app-view">
+                    <h2 class="text-3xl font-bold mb-2">Welcome, Alex!</h2>
+                    <p class="text-gray-600 mb-8">Here are the elections you can participate in.</p>
+                    <div id="election-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Election cards will be injected here by JavaScript -->
+                    </div>
+                </section>
+
+                <!-- Ballot View -->
+                <section id="ballot-view" class="app-view">
+                    <button class="back-to-dashboard mb-6 text-blue-600 hover:text-blue-800 font-semibold">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </button>
+                    <h2 id="ballot-title" class="text-3xl font-bold mb-2"></h2>
+                    <p class="text-gray-600 mb-8">Select one candidate to cast your vote. This action is final.</p>
+                    <div id="candidate-list" class="space-y-4">
+                        <!-- Candidate cards will be injected here -->
+                    </div>
+                    <div class="mt-8 flex justify-end">
+                        <button id="submit-vote-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:scale-100">
+                            Submit Vote
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Results View -->
+                <section id="results-view" class="app-view">
+                    <h2 class="text-3xl font-bold mb-8">Election Results</h2>
+                    <div id="results-container" class="space-y-8">
+                        <!-- Results will be injected here -->
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-lg shadow-xl p-8 max-w-sm w-full text-center transform transition-all" id="modal-content">
+                <i class="fas fa-exclamation-triangle fa-3x text-amber-500 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Confirm Your Vote</h3>
+                <p class="text-gray-600 mb-6">You cannot change your vote after submission. Are you sure you want to proceed?</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="cancel-vote-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-lg transition">Cancel</button>
+                    <button id="confirm-vote-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition">Yes, Confirm</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="notification-toast" class="fixed bottom-5 right-5 bg-gray-900 text-white py-3 px-6 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-500">
+            <p id="notification-message"></p>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- MOCK DATA ---
+            const mockData = {
+                elections: [
+                    {
+                        id: 'pres-2025',
+                        title: 'Student Council President 2025',
+                        status: 'OPEN', // OPEN, CLOSED, UPCOMING
+                        closes: '2025-08-20T23:59:59',
+                        candidates: [
+                            { id: 'c1', name: 'Jane Doe', manifesto: 'A promise of innovation and student welfare.', photo: 'https://placehold.co/400x400/E2E8F0/4A5568?text=Jane' },
+                            { id: 'c2', name: 'John Smith', manifesto: 'Focused on improving campus facilities.', photo: 'https://placehold.co/400x400/CBD5E0/4A5568?text=John' },
+                            { id: 'c3', name: 'Sam Wilson', manifesto: 'More clubs, more events, more fun!', photo: 'https://placehold.co/400x400/A0AEC0/4A5568?text=Sam' }
+                        ],
+                        results: { 'c1': 1105, 'c2': 850, 'c3': 596 }
+                    },
+                    {
+                        id: 'vp-2025',
+                        title: 'Vice President 2025',
+                        status: 'OPEN',
+                        closes: '2025-08-20T23:59:59',
+                        candidates: [
+                            { id: 'c4', name: 'Emily White', manifesto: 'Dedicated to academic excellence.', photo: 'https://placehold.co/400x400/E2E8F0/4A5568?text=Emily' },
+                            { id: 'c5', name: 'Michael Brown', manifesto: 'Bridging students and faculty.', photo: 'https://placehold.co/400x400/CBD5E0/4A5568?text=Michael' }
+                        ],
+                        results: { 'c4': 1520, 'c5': 1031 }
+                    },
+                    {
+                        id: 'dr-2024',
+                        title: 'Department Representative 2024',
+                        status: 'CLOSED',
+                        closes: '2024-05-10T23:59:59',
+                        candidates: [
+                            { id: 'c6', name: 'Chris Green', manifesto: 'A strong voice for the CS department.', photo: 'https://placehold.co/400x400/A0AEC0/4A5568?text=Chris' },
+                            { id: 'c7', name: 'Patricia Black', manifesto: 'Better resources for all.', photo: 'https://placehold.co/400x400/718096/FFFFFF?text=Patricia' }
+                        ],
+                        results: { 'c6': 450, 'c7': 620 }
+                    }
+                ],
+                userVotes: {} // To store which elections the user has voted in, e.g., {'pres-2025': 'c1'}
+            };
+
+            // --- DOM ELEMENTS ---
+            const topLevelViews = document.querySelectorAll('#app > .view');
+            const appViews = document.querySelectorAll('#main-app-view .app-view');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const loginForm = document.getElementById('login-form');
+            const logoutBtn = document.getElementById('logout-btn');
+            const electionList = document.getElementById('election-list');
+            const ballotTitle = document.getElementById('ballot-title');
+            const candidateList = document.getElementById('candidate-list');
+            const submitVoteBtn = document.getElementById('submit-vote-btn');
+            const backToDashboardBtns = document.querySelectorAll('.back-to-dashboard');
+            const resultsContainer = document.getElementById('results-container');
+            const confirmationModal = document.getElementById('confirmation-modal');
+            const cancelVoteBtn = document.getElementById('cancel-vote-btn');
+            const confirmVoteBtn = document.getElementById('confirm-vote-btn');
+            const notificationToast = document.getElementById('notification-toast');
+            const notificationMessage = document.getElementById('notification-message');
+            
+            let currentElectionId = null;
+            let selectedCandidateId = null;
+
+            // --- VIEW MANAGEMENT (FIXED) ---
+            // This function now only switches between top-level views: Login and the Main App.
+            const showTopLevelView = (viewId) => {
+                topLevelViews.forEach(view => view.style.display = 'none');
+                const activeView = document.getElementById(viewId);
+                if (activeView) {
+                    activeView.style.display = 'block';
+                }
+            };
+
+            // This new function handles switching between views *inside* the main app.
+            const showAppView = (viewId) => {
+                appViews.forEach(view => view.style.display = 'none');
+                const activeView = document.getElementById(viewId);
+                if (activeView) {
+                    activeView.style.display = 'block';
+                }
+                // Highlight active nav link
+                navLinks.forEach(link => {
+                    link.classList.toggle('text-blue-800', link.dataset.view === viewId);
+                    link.classList.toggle('text-gray-600', link.dataset.view !== viewId);
+                });
+            };
+            
+            // --- DYNAMIC CONTENT RENDERING ---
+
+            const renderDashboard = () => {
+                electionList.innerHTML = '';
+                mockData.elections.forEach(election => {
+                    const hasVoted = !!mockData.userVotes[election.id];
+                    const isClosed = election.status === 'CLOSED';
+                    
+                    let statusTag, button;
+
+                    if (isClosed) {
+                        statusTag = `<span class="text-xs font-bold uppercase px-2 py-1 bg-gray-500 text-white rounded-full">Closed</span>`;
+                        button = `<button class="view-results-btn mt-4 w-full bg-gray-700 text-white font-semibold py-2 rounded-lg transition hover:bg-gray-800" data-election-id="${election.id}">View Results</button>`;
+                    } else if (hasVoted) {
+                        statusTag = `<span class="text-xs font-bold uppercase px-2 py-1 bg-green-500 text-white rounded-full">Voted</span>`;
+                         button = `<button class="view-results-btn mt-4 w-full bg-gray-700 text-white font-semibold py-2 rounded-lg transition hover:bg-gray-800" data-election-id="${election.id}">View Results</button>`;
+                    } else { // Open for voting
+                         statusTag = `<span class="text-xs font-bold uppercase px-2 py-1 bg-blue-500 text-white rounded-full">Open</span>`;
+                         button = `<button class="vote-now-btn mt-4 w-full bg-blue-800 text-white font-semibold py-2 rounded-lg transition hover:bg-blue-900" data-election-id="${election.id}">Vote Now</button>`;
+                    }
+
+                    const cardHTML = `
+                        <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-transform transform hover:-translate-y-1">
+                            <div class="p-6">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="text-xl font-bold mb-2">${election.title}</h3>
+                                    ${statusTag}
+                                </div>
+                                <p class="text-gray-600 text-sm mb-4">Closes: ${new Date(election.closes).toLocaleDateString()}</p>
+                                ${button}
+                            </div>
+                        </div>
+                    `;
+                    electionList.innerHTML += cardHTML;
+                });
+            };
+
+            const renderBallot = (electionId) => {
+                const election = mockData.elections.find(e => e.id === electionId);
+                if (!election) return;
+
+                currentElectionId = electionId;
+                selectedCandidateId = null;
+                submitVoteBtn.disabled = true;
+
+                ballotTitle.textContent = election.title;
+                candidateList.innerHTML = '';
+
+                election.candidates.forEach(candidate => {
+                    const cardHTML = `
+                        <div class="candidate-card border-2 border-gray-200 rounded-lg p-4 flex items-center space-x-4 cursor-pointer transition-all duration-300 hover:border-blue-500" data-candidate-id="${candidate.id}">
+                            <img src="${candidate.photo}" alt="${candidate.name}" class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md">
+                            <div class="flex-grow">
+                                <h4 class="text-lg font-bold">${candidate.name}</h4>
+                                <p class="text-sm text-gray-600">${candidate.manifesto}</p>
+                            </div>
+                            <div class="radio-indicator w-6 h-6 rounded-full border-2 border-gray-400 flex items-center justify-center">
+                                <div class="radio-dot w-3 h-3 rounded-full bg-green-500 opacity-0 transition-opacity"></div>
+                            </div>
+                        </div>
+                    `;
+                    candidateList.innerHTML += cardHTML;
+                });
+                showAppView('ballot-view'); // Use the correct view switcher
+            };
+            
+            const renderResults = () => {
+                resultsContainer.innerHTML = '';
+                const closedElections = mockData.elections.filter(e => e.status === 'CLOSED' || mockData.userVotes[e.id]);
+
+                if (closedElections.length === 0) {
+                    resultsContainer.innerHTML = `<p class="text-center text-gray-500">No results to show yet. Cast your vote or wait for elections to close.</p>`;
+                    return;
+                }
+
+                closedElections.forEach(election => {
+                    const totalVotes = Object.values(election.results).reduce((sum, votes) => sum + votes, 0);
+                    
+                    let resultsHTML = `
+                        <div class="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 class="text-xl font-bold mb-4">${election.title}</h3>
+                            <div class="space-y-3">
+                    `;
+                    
+                    election.candidates.forEach(candidate => {
+                        const votes = election.results[candidate.id] || 0;
+                        const percentage = totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(1) : 0;
+                        resultsHTML += `
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-semibold">${candidate.name}</span>
+                                    <span class="text-sm text-gray-600">${votes} Votes (${percentage}%)</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-4">
+                                    <div class="bg-blue-600 h-4 rounded-full" style="width: ${percentage}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    resultsHTML += `
+                            </div>
+                            <p class="text-right text-sm font-semibold mt-4 text-gray-700">Total Votes: ${totalVotes}</p>
+                        </div>
+                    `;
+                    resultsContainer.innerHTML += resultsHTML;
+                });
+            };
+
+            // --- EVENT LISTENERS (UPDATED) ---
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                showTopLevelView('main-app-view'); // Show the main app container
+                showAppView('dashboard-view');    // Show the dashboard inside it
+                renderDashboard();
+            });
+
+            logoutBtn.addEventListener('click', () => {
+                mockData.userVotes = {};
+                showTopLevelView('login-view'); // Go back to the login view
+            });
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const viewId = e.currentTarget.dataset.view;
+                    if (viewId === 'results-view') {
+                        renderResults();
+                    }
+                    showAppView(viewId); // Use the correct view switcher
+                });
+            });
+
+            backToDashboardBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    showAppView('dashboard-view'); // Use the correct view switcher
+                    renderDashboard();
+                });
+            });
+
+            electionList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('vote-now-btn')) {
+                    const electionId = e.target.dataset.electionId;
+                    renderBallot(electionId);
+                }
+                if (e.target.classList.contains('view-results-btn')) {
+                    renderResults();
+                    showAppView('results-view'); // Use the correct view switcher
+                }
+            });
+            
+            candidateList.addEventListener('click', (e) => {
+                const card = e.target.closest('.candidate-card');
+                if (!card) return;
+
+                selectedCandidateId = card.dataset.candidateId;
+                
+                document.querySelectorAll('.candidate-card').forEach(c => c.classList.remove('selected'));
+                document.querySelectorAll('.radio-dot').forEach(d => d.classList.add('opacity-0'));
+                
+                card.classList.add('selected');
+                card.querySelector('.radio-dot').classList.remove('opacity-0');
+
+                submitVoteBtn.disabled = false;
+            });
+            
+            submitVoteBtn.addEventListener('click', () => {
+                if (selectedCandidateId) {
+                    confirmationModal.classList.remove('hidden');
+                }
+            });
+
+            cancelVoteBtn.addEventListener('click', () => {
+                confirmationModal.classList.add('hidden');
+            });
+
+            confirmVoteBtn.addEventListener('click', () => {
+                if (currentElectionId && selectedCandidateId) {
+                    mockData.userVotes[currentElectionId] = selectedCandidateId;
+                    mockData.elections.find(e => e.id === currentElectionId).results[selectedCandidateId]++;
+
+                    confirmationModal.classList.add('hidden');
+                    showNotification('Vote cast successfully!');
+                    showAppView('dashboard-view'); // Use the correct view switcher
+                    renderDashboard();
+                }
+            });
+
+            // --- UTILITY FUNCTIONS ---
+            const showNotification = (message) => {
+                notificationMessage.textContent = message;
+                notificationToast.classList.remove('translate-y-20', 'opacity-0');
+                setTimeout(() => {
+                    notificationToast.classList.add('translate-y-20', 'opacity-0');
+                }, 3000);
+            };
+
+            // --- INITIALIZATION ---
+            showTopLevelView('login-view'); // Start at the login page
+            showAppView('dashboard-view'); // Pre-hide all app views initially
+        });
+    </script>
+</body>
+</html>

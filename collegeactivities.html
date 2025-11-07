@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Activities Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@0.368.0/dist/umd/lucide.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Tailwind gray-50 */
+        }
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 500px;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+        }
+        .modal-backdrop.flex {
+             display: flex;
+        }
+        .modal-backdrop.visible .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .result-bar-bg {
+            background-color: #e5e7eb; /* gray-200 */
+        }
+        .result-bar-fill {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Application Container -->
+    <div id="app" class="min-h-screen">
+
+        <!-- Login View -->
+        <div id="login-view" class="flex items-center justify-center min-h-screen bg-gray-100">
+            <div class="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-lg">
+                <div class="text-center">
+                    <i data-lucide="building-2" class="mx-auto h-12 w-auto text-indigo-600"></i>
+                    <h2 class="mt-6 text-3xl font-bold text-gray-900">
+                        College Activities Portal
+                    </h2>
+                    <p class="mt-2 text-sm text-gray-600">Sign in to access notices, polls, and updates</p>
+                </div>
+                <form id="login-form" class="mt-8 space-y-6">
+                    <div class="space-y-4 rounded-md shadow-sm">
+                        <div>
+                            <label for="email-address" class="sr-only">Email address</label>
+                            <input id="email-address" name="email" type="email" autocomplete="email" required class="relative block w-full px-3 py-3 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Email address (e.g., admin@institute.com)">
+                        </div>
+                        <div>
+                            <label for="password" class="sr-only">Password</label>
+                            <input id="password" name="password" type="password" autocomplete="current-password" required class="relative block w-full px-3 py-3 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Password">
+                        </div>
+                    </div>
+                    <p class="text-xs text-center text-gray-500">
+                        Use `admin@institute.com`, `faculty@institute.com`, or `student@institute.com` to test different roles.
+                    </p>
+                    <div>
+                        <button type="submit" class="relative flex justify-center w-full px-4 py-3 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md group hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Sign in
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main Content View -->
+        <div id="main-view" class="hidden">
+            <!-- Header/Navbar -->
+            <header class="bg-white shadow-md sticky top-0 z-40">
+                <div class="container px-4 mx-auto sm:px-6 lg:px-8">
+                    <div class="flex items-center justify-between h-16">
+                        <div class="flex items-center">
+                            <i data-lucide="layout-dashboard" class="h-8 w-8 text-indigo-600"></i>
+                            <span class="ml-3 text-xl font-bold text-gray-800">Activities Portal</span>
+                        </div>
+                        <div class="hidden md:flex items-center space-x-4">
+                            <nav class="flex space-x-1">
+                                <a href="#" id="nav-dashboard" class="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md">Notices</a>
+                                <a href="#" id="nav-clubs" class="px-3 py-2 text-sm font-medium text-gray-500 rounded-md hover:bg-gray-100">Clubs</a>
+                                <a href="#" id="nav-voting" class="px-3 py-2 text-sm font-medium text-gray-500 rounded-md hover:bg-gray-100">Voting</a>
+                                <a href="#" id="nav-admin-panel" class="hidden px-3 py-2 text-sm font-medium text-gray-500 rounded-md hover:bg-gray-100">Admin Panel</a>
+                            </nav>
+                        </div>
+                        <div class="flex items-center">
+                            <button id="upload-notice-btn" class="hidden items-center justify-center px-4 py-2 mr-4 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <i data-lucide="upload" class="w-4 h-4 mr-2"></i>
+                                Upload
+                            </button>
+                            <div class="relative">
+                                <button id="user-menu-button" class="flex items-center max-w-xs text-sm bg-white rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <span id="user-avatar" class="flex items-center justify-center w-10 h-10 text-white bg-indigo-500 rounded-full"></span>
+                                    <div class="ml-3 text-left">
+                                        <p id="user-name" class="text-sm font-medium text-gray-800"></p>
+                                        <p id="user-role" class="text-xs text-gray-500"></p>
+                                    </div>
+                                </button>
+                            </div>
+                             <button id="logout-btn" class="ml-4 text-gray-500 hover:text-gray-700">
+                                <i data-lucide="log-out" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Notices Dashboard Content -->
+            <main id="dashboard-content" class="container p-4 mx-auto sm:p-6 lg:p-8">
+                <div class="mb-6">
+                    <h1 class="text-3xl font-bold text-gray-900">Notice Board</h1>
+                    <p class="mt-1 text-gray-600">Welcome back! Here are the latest updates.</p>
+                </div>
+                <!-- Search and Filters -->
+                <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-5">
+                    <div class="md:col-span-3">
+                        <label for="search" class="sr-only">Search</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"><i data-lucide="search" class="w-5 h-5 text-gray-400"></i></div>
+                            <input type="text" id="search" class="block w-full p-3 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Search notices...">
+                        </div>
+                    </div>
+                    <div>
+                        <select class="block w-full p-3 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option selected>All Departments</option><option>Computer Science</option><option>Mechanical</option><option>Electronics</option><option>Civil</option>
+                        </select>
+                    </div>
+                    <div><input type="date" class="block w-full p-3 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500"></div>
+                </div>
+                <!-- Pinned Notices -->
+                <div class="mb-8">
+                    <h2 class="mb-4 text-xl font-semibold text-gray-800">Pinned Notices</h2>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <div class="p-5 bg-white border-l-4 border-yellow-400 rounded-r-lg shadow-md">
+                            <div class="flex items-start justify-between">
+                                <div><h3 class="text-lg font-bold text-gray-900">Final Examination Schedule</h3><p class="text-sm text-gray-500">Issued by: Examination Dept.</p></div>
+                                <i data-lucide="pin" class="w-5 h-5 text-yellow-500"></i>
+                            </div>
+                            <p class="mt-2 text-sm text-gray-700">The schedule for the upcoming final semester examinations is now available for all departments.</p>
+                            <div class="flex items-center justify-between mt-4"><span class="text-xs text-gray-400">Sep 10, 2025</span><a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">View PDF</a></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Recent Notices -->
+                <div><h2 class="mb-4 text-xl font-semibold text-gray-800">Recent Notices</h2><div id="notice-list" class="space-y-4"></div></div>
+            </main>
+
+            <!-- Clubs Portal Content -->
+            <div id="clubs-content" class="hidden container p-4 mx-auto sm:p-6 lg:p-8">
+                <div class="mb-6"><h1 class="text-3xl font-bold text-gray-900">Student Clubs</h1><p class="mt-1 text-gray-600">Explore communities, join events, and find your passion.</p></div>
+                <div class="mb-8">
+                    <h2 class="mb-4 text-xl font-semibold text-gray-800">Featured Clubs</h2>
+                    <div id="clubs-list" class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <!-- Club cards will be injected here by JS -->
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                    <div>
+                        <h2 class="mb-4 text-xl font-semibold text-gray-800">Upcoming Events</h2>
+                        <div id="events-list" class="space-y-4">
+                            <!-- Event items will be injected here by JS -->
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="mb-4 text-xl font-semibold text-gray-800">Open Positions</h2>
+                        <div id="positions-list" class="space-y-4">
+                            <!-- Position items will be injected here by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Voting Portal Content -->
+            <div id="voting-content" class="hidden container p-4 mx-auto sm:p-6 lg:p-8">
+                <div class="mb-6"><h1 class="text-3xl font-bold text-gray-900">Voting Portal</h1><p class="mt-1 text-gray-600">Make your voice heard! Cast your vote in the active polls.</p></div>
+                <div id="polls-container" class="space-y-8">
+                    <!-- Polls will be injected here by JS -->
+                </div>
+            </div>
+
+            <!-- Admin Panel Content -->
+            <div id="admin-panel-content" class="hidden container p-4 mx-auto sm:p-6 lg:p-8">
+                 <div class="mb-6"><h1 class="text-3xl font-bold text-gray-900">Admin Panel</h1><p class="mt-1 text-gray-600">Manage users and departments.</p></div>
+                 <div class="p-6 mb-8 bg-white rounded-lg shadow-md">
+                    <h2 class="mb-4 text-xl font-semibold text-gray-800">User Management</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Name</th><th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Email</th><th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Role</th><th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">John Doe</td><td class="px-6 py-4 whitespace-nowrap">admin@institute.com</td><td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Super Admin</span></td><td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap"><a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a><a href="#" class="ml-4 text-red-600 hover:text-red-900">Delete</a></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">Jane Smith</td><td class="px-6 py-4 whitespace-nowrap">faculty@institute.com</td><td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Faculty</span></td><td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap"><a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a><a href="#" class="ml-4 text-red-600 hover:text-red-900">Delete</a></td>
+                                </tr>
+                                 <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">Peter Jones</td><td class="px-6 py-4 whitespace-nowrap">student@institute.com</td><td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Student</span></td><td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap"><a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a><a href="#" class="ml-4 text-red-600 hover:text-red-900">Delete</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <!-- Upload Notice Modal -->
+    <div id="upload-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="flex items-center justify-between pb-4 border-b"><h3 class="text-xl font-semibold">Upload New Notice</h3><button id="close-modal-btn" class="text-gray-500 hover:text-gray-800"><i data-lucide="x" class="w-6 h-6"></i></button></div>
+            <form class="mt-6 space-y-4">
+                <div><label for="notice-title" class="block text-sm font-medium text-gray-700">Notice Title</label><input type="text" id="notice-title" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></div>
+                <div>
+                    <label for="notice-department" class="block text-sm font-medium text-gray-700">Department</label>
+                    <select id="notice-department" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><option>Computer Science</option><option>Mechanical</option><option>General</option></select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Notice File</label>
+                    <div class="flex justify-center px-6 pt-5 pb-6 mt-1 border-2 border-gray-300 border-dashed rounded-md">
+                        <div class="space-y-1 text-center">
+                             <i data-lucide="file-up" class="w-12 h-12 mx-auto text-gray-400"></i>
+                            <div class="flex text-sm text-gray-600">
+                                <label for="file-upload" class="relative font-medium text-indigo-600 bg-white rounded-md cursor-pointer hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"><span>Upload a file</span><input id="file-upload" name="file-upload" type="file" class="sr-only"></label>
+                                <p class="pl-1">or drag and drop</p>
+                            </div>
+                            <p class="text-xs text-gray-500">PDF, DOCX, PNG up to 10MB</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end pt-4 space-x-3">
+                    <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50" id="cancel-upload-btn">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700">Upload Notice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            // --- Mock Data ---
+            const mockNotices = [
+                { id: 1, title: 'Workshop on Machine Learning', department: 'Computer Science', date: 'Sep 12, 2025', fileType: 'PDF', icon: 'file-text' },
+                { id: 2, title: 'Guest Lecture by Industry Expert', department: 'Mechanical', date: 'Sep 11, 2025', fileType: 'DOCX', icon: 'file-text' },
+                { id: 3, title: 'Mid-Term Timetable', department: 'Examination Dept.', date: 'Sep 10, 2025', fileType: 'PDF', icon: 'calendar-days' },
+                { id: 4, title: 'Annual Sports Day Registration', department: 'Student Council', date: 'Sep 9, 2025', fileType: 'PNG', icon: 'trophy' },
+                { id: 5, title: 'Library Closure Notice', department: 'Administration', date: 'Sep 8, 2025', fileType: 'PDF', icon: 'library' },
+            ];
+
+            const mockPolls = {
+                "poll_president": {
+                    question: "Who should be the next Student Council President?",
+                    options: {"Alice Smith": 215, "Bob Johnson": 180, "Charlie Brown": 95}
+                },
+                "poll_fest": {
+                    question: "What should be the theme for the Annual Tech Fest?",
+                    options: {"Retro Future": 150, "Cyberpunk": 250, "Sustainable Tech": 80}
+                }
+            };
+            
+            const mockClubs = [
+                { name: 'Coding Club', description: 'For all the programming enthusiasts.', icon: 'code-2' },
+                { name: 'Robotics Club', description: 'Build and compete with amazing robots.', icon: 'cpu' },
+                { name: 'Debate Club', description: 'Engage in thoughtful discussions and arguments.', icon: 'message-square' },
+                { name: 'Photography Club', description: 'Capture moments and tell stories.', icon: 'camera' },
+                { name: 'Music Club', description: 'Create and enjoy melodies together.', icon: 'music' },
+                { name: 'Sports Club', description: 'Promoting fitness and sportsmanship.', icon: 'swords' }
+            ];
+
+            const mockEvents = [
+                { name: 'Hackathon 2025', club: 'Coding Club', date: 'Oct 04, 2025', icon: 'laptop' },
+                { name: 'RoboWars Competition', club: 'Robotics Club', date: 'Oct 11, 2025', icon: 'shield' },
+                { name: 'Inter-College Debate Finals', club: 'Debate Club', date: 'Oct 18, 2025', icon: 'award' }
+            ];
+
+            const mockPositions = [
+                { title: 'Marketing Head', club: 'Music Club', description: 'Lead promotional activities for club events.' },
+                { title: 'Content Writer', club: 'Photography Club', description: 'Write engaging posts for our social media.' },
+                { title: 'Event Coordinator', club: 'Coding Club', description: 'Help organize workshops and hackathons.' }
+            ];
+
+            const userRoles = {
+                'admin@institute.com': { name: 'John Doe', role: 'Super Admin', permissions: ['upload', 'admin_panel'], votes: {} },
+                'faculty@institute.com': { name: 'Jane Smith', role: 'Faculty', permissions: ['upload'], votes: {} },
+                'student@institute.com': { name: 'Peter Jones', role: 'Student', permissions: [], votes: {} },
+            };
+
+            // --- DOM Elements ---
+            const loginView = document.getElementById('login-view'), mainView = document.getElementById('main-view');
+            const loginForm = document.getElementById('login-form'), emailInput = document.getElementById('email-address');
+            
+            const navDashboard = document.getElementById('nav-dashboard'), navAdminPanel = document.getElementById('nav-admin-panel'), navVoting = document.getElementById('nav-voting'), navClubs = document.getElementById('nav-clubs');
+            const dashboardContent = document.getElementById('dashboard-content'), adminPanelContent = document.getElementById('admin-panel-content'), votingContent = document.getElementById('voting-content'), clubsContent = document.getElementById('clubs-content');
+
+            const uploadNoticeBtn = document.getElementById('upload-notice-btn'), uploadModal = document.getElementById('upload-modal'), closeModalBtn = document.getElementById('close-modal-btn'), cancelUploadBtn = document.getElementById('cancel-upload-btn');
+            
+            const logoutBtn = document.getElementById('logout-btn');
+            const noticeListContainer = document.getElementById('notice-list');
+            const pollsContainer = document.getElementById('polls-container');
+            const clubsList = document.getElementById('clubs-list'), eventsList = document.getElementById('events-list'), positionsList = document.getElementById('positions-list');
+
+            let currentUser = null;
+            
+            // --- UI Rendering Functions ---
+            function renderNotices() {
+                noticeListContainer.innerHTML = '';
+                mockNotices.forEach(notice => {
+                    const noticeElement = `
+                        <div class="flex items-center p-4 bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                            <div class="flex items-center justify-center flex-shrink-0 w-12 h-12 text-indigo-500 bg-indigo-100 rounded-full"><i data-lucide="${notice.icon}"></i></div>
+                            <div class="flex-1 min-w-0 ml-4">
+                                <p class="text-base font-semibold text-gray-900 truncate">${notice.title}</p>
+                                <p class="text-sm text-gray-500 truncate">Dept: ${notice.department}</p>
+                            </div>
+                            <div class="text-right ml-4">
+                                <p class="text-sm font-medium text-gray-600">${notice.date}</p>
+                                <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">${notice.fileType}</a>
+                            </div>
+                        </div>`;
+                    noticeListContainer.insertAdjacentHTML('beforeend', noticeElement);
+                });
+                lucide.createIcons();
+            }
+
+            function renderClubs() {
+                clubsList.innerHTML = '';
+                mockClubs.forEach(club => {
+                    clubsList.innerHTML += `
+                        <div class="flex flex-col p-6 text-center bg-white rounded-lg shadow-md transition-transform transform hover:-translate-y-1">
+                            <i data-lucide="${club.icon}" class="w-12 h-12 mx-auto text-indigo-600"></i>
+                            <h3 class="mt-4 text-lg font-bold text-gray-900">${club.name}</h3>
+                            <p class="mt-1 text-sm text-gray-600 flex-grow">${club.description}</p>
+                            <button class="w-full px-4 py-2 mt-4 text-sm font-medium text-indigo-700 bg-indigo-100 rounded-md hover:bg-indigo-200">View Details</button>
+                        </div>
+                    `;
+                });
+
+                eventsList.innerHTML = '';
+                mockEvents.forEach(event => {
+                    eventsList.innerHTML += `
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-sm">
+                            <div class="flex items-center justify-center flex-shrink-0 w-10 h-10 text-green-500 bg-green-100 rounded-full"><i data-lucide="${event.icon}"></i></div>
+                            <div class="flex-1 ml-4">
+                                <p class="font-semibold text-gray-900">${event.name}</p>
+                                <p class="text-sm text-gray-500">${event.club} &bull; ${event.date}</p>
+                            </div>
+                            <button class="px-3 py-1 text-sm text-white bg-green-500 rounded-full hover:bg-green-600">Register</button>
+                        </div>
+                    `;
+                });
+
+                positionsList.innerHTML = '';
+                mockPositions.forEach(pos => {
+                    positionsList.innerHTML += `
+                        <div class="p-4 bg-white rounded-lg shadow-sm">
+                             <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-gray-900">${pos.title}</p>
+                                    <p class="text-sm text-gray-500">${pos.club}</p>
+                                </div>
+                                <button class="px-3 py-1 text-sm text-indigo-700 bg-indigo-100 rounded-full hover:bg-indigo-200">Apply</button>
+                            </div>
+                            <p class="mt-2 text-sm text-gray-600">${pos.description}</p>
+                        </div>
+                    `;
+                });
+                lucide.createIcons();
+            }
+
+            function renderPolls() {
+                pollsContainer.innerHTML = '';
+                for (const pollId in mockPolls) {
+                    const poll = mockPolls[pollId];
+                    const totalVotes = Object.values(poll.options).reduce((sum, count) => sum + count, 0);
+                    const userHasVoted = currentUser && currentUser.votes[pollId];
+
+                    let optionsHtml = '';
+                    for (const option in poll.options) {
+                        const count = poll.options[option];
+                        const percentage = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
+                        
+                        if (userHasVoted) {
+                            optionsHtml += `
+                                <div class="mb-2">
+                                    <div class="flex justify-between mb-1"><span class="font-medium">${option}</span><span>${count} votes (${percentage.toFixed(1)}%)</span></div>
+                                    <div class="w-full rounded-full result-bar-bg"><div class="p-0.5 text-xs font-medium text-center text-white bg-indigo-600 rounded-full result-bar-fill" style="width: ${percentage}%"></div></div>
+                                </div>`;
+                        } else {
+                            optionsHtml += `
+                                <label for="${pollId}-${option}" class="flex items-center p-3 my-2 border rounded-md cursor-pointer hover:bg-gray-50">
+                                    <input type="radio" name="${pollId}" value="${option}" id="${pollId}-${option}" class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                    <span class="ml-3 text-sm font-medium text-gray-700">${option}</span>
+                                </label>`;
+                        }
+                    }
+
+                    const pollElement = `
+                        <div class="p-6 bg-white rounded-lg shadow-md">
+                            <h2 class="mb-4 text-xl font-semibold text-gray-800">${poll.question}</h2>
+                            <form class="poll-form" data-poll-id="${pollId}">
+                                <div class="options-container">${optionsHtml}</div>
+                                ${!userHasVoted ? '<button type="submit" class="w-full px-4 py-2 mt-4 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Cast Your Vote</button>' : '<p class="p-3 mt-4 text-sm text-center text-green-700 bg-green-100 rounded-md">Thanks for voting!</p>'}
+                            </form>
+                        </div>`;
+                    pollsContainer.insertAdjacentHTML('beforeend', pollElement);
+                }
+            }
+
+            // --- UI State Functions ---
+            function setupUIForUser(user) {
+                document.getElementById('user-name').textContent = user.name;
+                document.getElementById('user-role').textContent = user.role;
+                document.getElementById('user-avatar').textContent = user.name.charAt(0);
+                uploadNoticeBtn.classList.toggle('hidden', !user.permissions.includes('upload'));
+                navAdminPanel.classList.toggle('hidden', !user.permissions.includes('admin_panel'));
+            }
+            
+            function showView(view) {
+                loginView.classList.toggle('hidden', view !== 'login');
+                mainView.classList.toggle('hidden', view !== 'main');
+            }
+            
+            function showTab(tab) {
+                const tabs = { dashboard: dashboardContent, admin: adminPanelContent, voting: votingContent, clubs: clubsContent };
+                const navs = { dashboard: navDashboard, admin: navAdminPanel, voting: navVoting, clubs: navClubs };
+                
+                Object.values(tabs).forEach(content => content.classList.add('hidden'));
+                Object.values(navs).forEach(nav => nav.classList.remove('bg-gray-200', 'text-gray-700'));
+
+                if (tabs[tab]) {
+                    tabs[tab].classList.remove('hidden');
+                    navs[tab].classList.add('bg-gray-200', 'text-gray-700');
+                }
+            }
+
+            function openModal() {
+                uploadModal.classList.add('flex', 'visible');
+            }
+
+            function closeModal() {
+                 uploadModal.classList.remove('visible');
+                 setTimeout(() => uploadModal.classList.remove('flex'), 200);
+            }
+            
+            // --- Event Listeners ---
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = emailInput.value.trim();
+                const user = userRoles[email];
+                if (user) {
+                    currentUser = user;
+                    localStorage.setItem('currentUserEmail', email);
+                    setupUIForUser(user);
+                    renderNotices();
+                    renderPolls();
+                    renderClubs();
+                    showView('main');
+                    showTab('dashboard');
+                } else {
+                    const customAlert = document.createElement('div');
+                    customAlert.textContent = 'Invalid credentials. Please use one of the provided emails.';
+                    customAlert.style.cssText = `position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: #ef4444; color: white; padding: 1rem; border-radius: 0.5rem; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1);`;
+                    document.body.appendChild(customAlert);
+                    setTimeout(() => customAlert.remove(), 3000);
+                }
+            });
+
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('currentUserEmail');
+                currentUser = null;
+                loginForm.reset();
+                showView('login');
+            });
+            
+            navDashboard.addEventListener('click', (e) => { e.preventDefault(); showTab('dashboard'); });
+            navAdminPanel.addEventListener('click', (e) => { e.preventDefault(); showTab('admin'); });
+            navVoting.addEventListener('click', (e) => { e.preventDefault(); showTab('voting'); });
+            navClubs.addEventListener('click', (e) => { e.preventDefault(); showTab('clubs'); });
+
+            uploadNoticeBtn.addEventListener('click', openModal);
+            closeModalBtn.addEventListener('click', closeModal);
+            cancelUploadBtn.addEventListener('click', closeModal);
+            uploadModal.addEventListener('click', (e) => { if (e.target === uploadModal) closeModal(); });
+
+            pollsContainer.addEventListener('submit', (e) => {
+                if (e.target.classList.contains('poll-form')) {
+                    e.preventDefault();
+                    const pollId = e.target.dataset.pollId;
+                    const selectedOption = e.target.querySelector(`input[name="${pollId}"]:checked`);
+                    
+                    if (selectedOption && currentUser) {
+                        const voteValue = selectedOption.value;
+                        mockPolls[pollId].options[voteValue]++;
+                        currentUser.votes[pollId] = true; // Mark as voted
+                        renderPolls(); // Re-render to show results
+                    }
+                }
+            });
+
+            // --- Initial Load ---
+            const savedUserEmail = localStorage.getItem('currentUserEmail');
+            if (savedUserEmail && userRoles[savedUserEmail]) {
+                currentUser = userRoles[savedUserEmail];
+                setupUIForUser(currentUser);
+                renderNotices();
+                renderPolls();
+                renderClubs();
+                showView('main');
+                showTab('dashboard');
+            } else {
+                showView('login');
+            }
+        });
+    </script>
+</body>
+</html>
+
