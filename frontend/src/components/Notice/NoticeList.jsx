@@ -58,24 +58,30 @@ const NoticeList = ({ type, department, club }) => {
     );
   }
 
-  return (
-    <div style={{
+return (
+  <div
+    style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
       gap: '24px',
-      width: '100%'
-    }}>
-      {notices.map((notice) => (
-        <NoticeCard
-          key={notice._id}
-          notice={notice}
-          onDelete={handleDelete}
-          canDelete={canDeleteNotice(notice)}
-          onUpdate={fetchNotices}
-        />
-      ))}
-    </div>
-  );
+      width: '100%',
+      margin: 0,
+      padding: 0,
+      boxSizing: 'border-box'
+    }}
+  >
+    {notices.map((notice) => (
+      <NoticeCard
+        key={notice._id}
+        notice={notice}
+        onDelete={handleDelete}
+        canDelete={canDeleteNotice(notice)}
+        onUpdate={fetchNotices}
+      />
+    ))}
+  </div>
+);
+
 };
 
 export default NoticeList;
