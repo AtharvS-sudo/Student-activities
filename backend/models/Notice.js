@@ -46,6 +46,10 @@ const noticeSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  isPinned: {
+      type: Boolean,
+      default: false,
+    },
   updatedAt: {
     type: Date,
     default: Date.now,

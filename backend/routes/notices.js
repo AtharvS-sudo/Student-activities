@@ -1,34 +1,28 @@
 const express = require('express');
 const router = express.Router();
 const Notice = require('../models/Notice');
-const { protect, canPost } = require('../middleware/auth');
+const { protect, authorize, canPost } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-router.get('/', async (req, res) => {
+// Get all notices (pinned first)
+router.get('/', protect, async (req, res) => {
   try {
     const { type, department, club } = req.query;
-
-    let query = { isActive: true };
-
-    if (type) {
-      query.type = type;
-    }
-    if (department) {
-      query.department = department;
-    }
-    if (club) {
-      query.club = club;
-    }
+    
+    let query = {};
+    
+    if (type) query.type = type;
+    if (department) query.department = department;
+    if (club) query.club = club;
 
     const notices = await Notice.find(query)
       .populate('postedBy', 'name role')
       .populate('department', 'name code')
       .populate('club', 'name category')
-      .sort('-createdAt');
+      .sort({ isPinned: -1, createdAt: -1 }); // Pinned first, then by date
 
     res.json({
       success: true,
-      count: notices.length,
       notices,
     });
   } catch (error) {
@@ -39,7 +33,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+// Get single notice
+router.get('/:id', protect, async (req, res) => {
   try {
     const notice = await Notice.findById(req.params.id)
       .populate('postedBy', 'name role')
@@ -65,7 +60,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Make sure this line is correct
+// Create notice
 router.post('/', protect, canPost, upload.single('pdfFile'), async (req, res) => {
   try {
     const { title, content, type, format, department, club } = req.body;
@@ -80,12 +75,11 @@ router.post('/', protect, canPost, upload.single('pdfFile'), async (req, res) =>
     const noticeData = {
       title,
       type,
-      content, // Content is always required now
-      format: format || 'text', // Default to text if not specified
+      content,
+      format: format || 'text',
       postedBy: req.user.id,
     };
 
-    // If PDF file is attached, update format and add file data
     if (req.file) {
       noticeData.format = 'pdf';
       noticeData.pdfFile = {
@@ -120,10 +114,10 @@ router.post('/', protect, canPost, upload.single('pdfFile'), async (req, res) =>
   }
 });
 
-
-router.put('/:id', protect, async (req, res) => {
+// PIN/UNPIN NOTICE (ADMIN ONLY) - NEW
+router.patch('/:id/pin', protect, authorize('admin'), async (req, res) => {
   try {
-    let notice = await Notice.findById(req.params.id);
+    const notice = await Notice.findById(req.params.id);
 
     if (!notice) {
       return res.status(404).json({
@@ -132,30 +126,18 @@ router.put('/:id', protect, async (req, res) => {
       });
     }
 
-    if (
-      notice.postedBy.toString() !== req.user.id &&
-      req.user.role !== 'admin'
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to update this notice',
-      });
-    }
+    notice.isPinned = !notice.isPinned;
+    await notice.save();
 
-    const { title, content, isActive } = req.body;
-
-    notice = await Notice.findByIdAndUpdate(
-      req.params.id,
-      { title, content, isActive },
-      { new: true, runValidators: true }
-    )
+    const updatedNotice = await Notice.findById(notice._id)
       .populate('postedBy', 'name role')
       .populate('department', 'name code')
       .populate('club', 'name category');
 
     res.json({
       success: true,
-      notice,
+      message: `Notice ${notice.isPinned ? 'pinned' : 'unpinned'} successfully`,
+      notice: updatedNotice,
     });
   } catch (error) {
     res.status(500).json({
@@ -165,6 +147,7 @@ router.put('/:id', protect, async (req, res) => {
   }
 });
 
+// Delete notice
 router.delete('/:id', protect, async (req, res) => {
   try {
     const notice = await Notice.findById(req.params.id);
@@ -176,10 +159,7 @@ router.delete('/:id', protect, async (req, res) => {
       });
     }
 
-    if (
-      notice.postedBy.toString() !== req.user.id &&
-      req.user.role !== 'admin'
-    ) {
+    if (req.user.role !== 'admin' && notice.postedBy.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this notice',
