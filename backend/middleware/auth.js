@@ -72,13 +72,33 @@ exports.canPost = async (req, res, next) => {
   console.log('=== CAN POST CHECK ===');
   console.log('User role:', req.user.role);
   console.log('Can post:', req.user.canPost);
+  console.log('Additional roles:', req.user.additionalRoles);
+  console.log('Notice type:', req.body.type);
   
-  if (!req.user.canPost && req.user.role !== 'admin') {
+  // Admin can post anything
+  if (req.user.role === 'admin') {
+    console.log('✅ Admin can post');
+    return next();
+  }
+  
+  // Check if user has canPost permission
+  if (!req.user.canPost) {
     console.log('❌ User cannot post');
     return res.status(403).json({
       success: false,
       message: 'You do not have permission to post notices',
     });
+  }
+  
+  // If user is a club head, they can only post club notices
+  if (req.user.additionalRoles && req.user.additionalRoles.includes('club_head')) {
+    if (req.body.type === 'academic') {
+      console.log('❌ Club head cannot post academic notices');
+      return res.status(403).json({
+        success: false,
+        message: 'Club heads can only post club notices, not academic notices',
+      });
+    }
   }
   
   console.log('✅ User can post');

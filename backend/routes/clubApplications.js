@@ -194,6 +194,16 @@ router.patch('/:id', protect, async (req, res) => {
       }
     }
 
+    // If the student is being made a club head, enable canPost for club notices
+    if (status === 'approved') {
+      const student = await User.findById(application.student);
+      
+      if (student && student.additionalRoles && student.additionalRoles.includes('club_head')) {
+        student.canPost = true;
+        await student.save();
+      }
+    }
+
     const updatedApplication = await ClubApplication.findById(application._id)
       .populate('club', 'name category')
       .populate('student', 'name email department')

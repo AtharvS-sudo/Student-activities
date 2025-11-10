@@ -103,9 +103,15 @@ router.put('/:id/additional-roles', protect, authorize('admin'), async (req, res
       });
     }
 
+    // If user is being made a club head, enable canPost automatically
+    const updateData = { additionalRoles };
+    if (additionalRoles.includes('club_head')) {
+      updateData.canPost = true;
+    }
+
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { additionalRoles },
+      updateData,
       { new: true, runValidators: true }
     )
       .populate('department')

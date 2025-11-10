@@ -22,7 +22,7 @@ const Navbar = () => {
         <Link to="/academic">Academic</Link>
         <Link to="/clubs">Clubs</Link>
         
-        {(user.role === 'admin' || user.role === 'faculty' || user.role === 'club_member') && (
+        {(user.role === 'admin' || user.role === 'faculty' || user.role === 'club_member' || user.canPost || (user.additionalRoles && user.additionalRoles.includes('club_head'))) && (
           <Link to="/create-notice">Create Notice</Link>
         )}
         

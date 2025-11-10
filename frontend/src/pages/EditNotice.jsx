@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useDepartments, useClubs } from '../hooks';
+import { useAuth } from '../context/AuthContext';
 
 const EditNotice = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { departments } = useDepartments();
   const { clubs } = useClubs();
+  const isClubHead = user?.additionalRoles?.includes('club_head');
   
   const [formData, setFormData] = useState({
     title: '',
@@ -168,17 +171,29 @@ const EditNotice = () => {
               value={formData.type}
               onChange={handleChange}
               required
+              disabled={isClubHead}
               style={{
                 width: '100%',
                 padding: '12px',
                 border: '1px solid #e0e0e0',
                 borderRadius: '8px',
                 fontSize: '14px',
+                cursor: isClubHead ? 'not-allowed' : 'pointer',
+                opacity: isClubHead ? 0.7 : 1,
               }}
             >
-              <option value="academic">Academic</option>
+              {!isClubHead && <option value="academic">Academic</option>}
               <option value="club">Club</option>
             </select>
+            {isClubHead && (
+              <p style={{ 
+                marginTop: '5px', 
+                fontSize: '12px',
+                color: '#666' 
+              }}>
+                As a club head, you can only edit club notices
+              </p>
+            )}
           </div>
 
           {formData.type === 'academic' && (

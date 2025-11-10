@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { useDepartments, useClubs, useForm } from '../../hooks';
+import { useAuth } from '../../context/AuthContext';
 import styles from '../../styles/NoticeForm.module.css';
 
 const NoticeForm = ({ onSuccess }) => {
+  const { user } = useAuth();
+  const isClubHead = user?.additionalRoles?.includes('club_head');
+  
   const { values: formData, handleChange, resetForm } = useForm({
     title: '',
     content: '',
-    type: 'academic',
+    type: isClubHead ? 'club' : 'academic',
     department: '',
     club: '',
   });
@@ -134,10 +138,16 @@ const NoticeForm = ({ onSuccess }) => {
             onChange={handleChange}
             required
             className={styles.select}
+            disabled={isClubHead}
           >
-            <option value="academic">Academic</option>
+            {!isClubHead && <option value="academic">Academic</option>}
             <option value="club">Club</option>
           </select>
+          {isClubHead && (
+            <p className={styles.fileHint} style={{ marginTop: '5px', color: '#666' }}>
+              As a club head, you can only post club notices
+            </p>
+          )}
         </div>
 
         {formData.type === 'academic' && (
