@@ -64,7 +64,7 @@ const Dashboard = () => {
 
     if (selectedDate) {
       filtered = filtered.filter(notice => {
-        const noticeDate = new Date(notice.createdAt).toISOString().split('T');
+        const noticeDate = new Date(notice.createdAt).toISOString().split('T')[0];
         return noticeDate === selectedDate;
       });
     }

@@ -1,41 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiCalendar, FiUser, FiFileText, FiArrowLeft } from 'react-icons/fi';
+import { FiCalendar, FiUser, FiFileText, FiArrowLeft, FiEdit } from 'react-icons/fi';
 import { BsFilePdf } from 'react-icons/bs';
-import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, useNoticeDetail } from '../hooks';
+import styles from '../styles/NoticeDetail.module.css';
 
 const NoticeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [notice, setNotice] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    fetchNotice();
-  }, [id]);
-
-  const fetchNotice = async () => {
-    try {
-      const response = await api.get(`/notices/${id}`);
-      setNotice(response.data.notice);
-    } catch (error) {
-      setError('Failed to load notice');
-      console.error('Error fetching notice:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { notice, loading, error, deleteNotice } = useNoticeDetail(id);
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this notice?')) {
-      try {
-        await api.delete(`/notices/${id}`);
+      const result = await deleteNotice();
+      if (result.success) {
         navigate('/dashboard');
-      } catch (error) {
-        setError('Failed to delete notice');
+      } else {
+        alert(result.message);
       }
     }
   };
@@ -66,6 +48,17 @@ const NoticeDetail = () => {
     );
   };
 
+  const canEdit = () => {
+    return (
+      user.canPost &&
+      notice.postedBy?._id === user.id
+    );
+  };
+
+  const handleEdit = () => {
+    navigate(`/notice/${id}/edit`);
+  };
+
   if (loading) {
     return <div className="loading">Loading notice...</div>;
   }
@@ -87,17 +80,16 @@ const NoticeDetail = () => {
   }
 
   return (
-    <div className="container" style={{ maxWidth: '900px' }}>
+    <div className={styles.container}>
       <button
         onClick={() => navigate(-1)}
-        className="btn btn-primary"
-        style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '5px' }}
+        className={`btn btn-primary ${styles.backButton}`}
       >
         <FiArrowLeft /> Go Back
       </button>
 
-      <div className="card">
-        <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+      <div className={styles.card}>
+        <div className={styles.badges}>
           <span className={`badge badge-${notice.type}`}>
             {notice.type.toUpperCase()}
           </span>
@@ -106,73 +98,79 @@ const NoticeDetail = () => {
           </span>
         </div>
 
-        <h1 style={{ marginBottom: '20px', color: '#333' }}>{notice.title}</h1>
+        <h1 className={styles.title}>{notice.title}</h1>
 
-        <div style={{ 
-          padding: '15px', 
-          backgroundColor: '#f9f9f9', 
-          borderRadius: '4px',
-          marginBottom: '20px',
-          borderLeft: '4px solid #007bff'
-        }}>
-          <p style={{ margin: '8px 0', color: '#666' }}>
-            <FiUser style={{ marginRight: '8px' }} />
-            <strong>Posted by:</strong> {notice.postedBy?.name || 'Unknown'}
+        <div className={styles.infoBox}>
+          <p className={styles.infoItem}>
+            <FiUser />
+            <span className={styles.infoLabel}>Posted by:</span> {notice.postedBy?.name || 'Unknown'}
           </p>
-          <p style={{ margin: '8px 0', color: '#666' }}>
-            <FiCalendar style={{ marginRight: '8px' }} />
-            <strong>Date:</strong> {formatDate(notice.createdAt)}
+          <p className={styles.infoItem}>
+            <FiCalendar />
+            <span className={styles.infoLabel}>Date:</span> {formatDate(notice.createdAt)}
           </p>
           {notice.department && (
-            <p style={{ margin: '8px 0', color: '#666' }}>
-              <FiFileText style={{ marginRight: '8px' }} />
-              <strong>Department:</strong> {notice.department.name}
+            <p className={styles.infoItem}>
+              <FiFileText />
+              <span className={styles.infoLabel}>Department:</span> {notice.department.name}
             </p>
           )}
           {notice.club && (
-            <p style={{ margin: '8px 0', color: '#666' }}>
-              <FiFileText style={{ marginRight: '8px' }} />
-              <strong>Club:</strong> {notice.club.name}
+            <p className={styles.infoItem}>
+              <FiFileText />
+              <span className={styles.infoLabel}>Club:</span> {notice.club.name}
             </p>
           )}
         </div>
 
-        {notice.format === 'text' && notice.content && (
-          <div style={{
-            padding: '20px',
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
-            borderRadius: '4px',
-            marginBottom: '20px',
-            lineHeight: '1.6',
-            whiteSpace: 'pre-wrap',
-            wordWrap: 'break-word',
-            color: '#333'
-          }}>
+        {notice.content && (
+          <div className={styles.contentBox}>
             {notice.content}
           </div>
         )}
 
-        {notice.format === 'pdf' && notice.pdfFile && (
-          <div style={{ marginBottom: '20px' }}>
+        {notice.pdfFile && (
+          <div>
             <button
-              className="btn btn-primary"
+              className={`btn btn-primary ${styles.pdfButton}`}
               onClick={handleViewPDF}
-              style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
             >
               <BsFilePdf /> View PDF File ({(notice.pdfFile.size / 1024 / 1024).toFixed(2)} MB)
             </button>
           </div>
         )}
 
-        {canDelete() && (
-          <button
-            className="btn btn-danger"
-            onClick={handleDelete}
-          >
-            Delete Notice
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+          {canEdit() && (
+            <button
+              className={`btn btn-primary ${styles.editButton}`}
+              onClick={handleEdit}
+              style={{
+                background: '#2a5298',
+                color: 'white',
+                padding: '10px 20px',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <FiEdit /> Edit Notice
+            </button>
+          )}
+          {canDelete() && (
+            <button
+              className={`btn btn-danger ${styles.deleteButton}`}
+              onClick={handleDelete}
+            >
+              Delete Notice
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

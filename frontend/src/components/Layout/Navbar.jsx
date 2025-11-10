@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiLogOut } from 'react-icons/fi';
+import { FiLogOut, FiUser } from 'react-icons/fi';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -11,6 +11,8 @@ const Navbar = () => {
     logout();
     navigate('/');
   };
+
+  if (!user) return null;
 
   return (
     <nav className="navbar">
@@ -24,7 +26,16 @@ const Navbar = () => {
           <Link to="/create-notice">Create Notice</Link>
         )}
         
+        {user.additionalRoles && user.additionalRoles.length > 0 && user.additionalRoles.includes('club_head') && (
+          <Link to="/manage-club">Manage Club</Link>
+        )}
+        
         {user.role === 'admin' && <Link to="/admin">Admin</Link>}
+        
+        <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <FiUser size={16} />
+          Profile
+        </Link>
         
         <span>{user.name}</span>
         <button 

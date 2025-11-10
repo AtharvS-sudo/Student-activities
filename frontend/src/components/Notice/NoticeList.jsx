@@ -1,40 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
+import React from 'react';
 import NoticeCard from './NoticeCard';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, useNotices } from '../../hooks';
 
 const NoticeList = ({ type, department, club }) => {
-  const [notices, setNotices] = useState([]);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-
-  useEffect(() => {
-    fetchNotices();
-  }, [type, department, club]);
-
-  const fetchNotices = async () => {
-    try {
-      let url = '/notices?';
-      if (type) url += `type=${type}&`;
-      if (department) url += `department=${department}&`;
-      if (club) url += `club=${club}&`;
-
-      const response = await api.get(url);
-      setNotices(response.data.notices);
-    } catch (error) {
-      console.error('Error fetching notices:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { notices, loading, deleteNotice, pinNotice, refetch } = useNotices({ 
+    type, 
+    department, 
+    club 
+  });
 
   const handleDelete = async (noticeId) => {
     if (window.confirm('Are you sure you want to delete this notice?')) {
-      try {
-        await api.delete(`/notices/${noticeId}`);
-        fetchNotices();
-      } catch (error) {
-        alert('Failed to delete notice');
+      const result = await deleteNotice(noticeId);
+      if (!result.success) {
+        alert(result.message);
       }
     }
   };
@@ -76,7 +56,8 @@ return (
         notice={notice}
         onDelete={handleDelete}
         canDelete={canDeleteNotice(notice)}
-        onUpdate={fetchNotices}
+        onUpdate={refetch}
+        onPin={pinNotice}
       />
     ))}
   </div>

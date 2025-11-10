@@ -1,0 +1,78 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.title {
+  margin-bottom: 20px;
+  color: #1e3c72;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8ecf1;
+}
+
+.cardTitle {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #1e3c72;
+  font-weight: 700;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background: #f5f7fa;
+}
+
+.table th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 700;
+  color: #1e3c72;
+  border-bottom: 2px solid #e8ecf1;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  color: #555;
+}
+
+.table tbody tr:hover {
+  background: #f9fbff;
+}
+
+.select {
+  padding: 6px 10px;
+  border: 1px solid #d5dce0;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #2c3e50;
+  background: white;
+  cursor: pointer;
+}
+
+.checkbox {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}

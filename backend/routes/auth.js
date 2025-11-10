@@ -32,6 +32,14 @@ router.post(
     try {
       const { name, email, password, role, department, club } = req.body;
 
+      // Validate faculty email domain
+      if (role === 'faculty' && !email.endsWith('@vit.edu')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Faculty email must end with @vit.edu',
+        });
+      }
+
       let user = await User.findOne({ email });
       if (user) {
         return res.status(400).json({
@@ -47,6 +55,7 @@ router.post(
         role,
         department,
         club,
+        canPost: role === 'faculty' ? true : false,
       });
 
       const token = generateToken(user._id);
@@ -59,6 +68,7 @@ router.post(
           name: user.name,
           email: user.email,
           role: user.role,
+          additionalRoles: user.additionalRoles || [],
           canPost: user.canPost,
         },
       });
@@ -106,6 +116,14 @@ router.post(
         });
       }
 
+      // Validate faculty email domain
+      if (user.role === 'faculty' && !email.endsWith('@vit.edu')) {
+        return res.status(403).json({
+          success: false,
+          message: 'Faculty email must end with @vit.edu',
+        });
+      }
+
       const token = generateToken(user._id);
 
       res.json({
@@ -116,6 +134,7 @@ router.post(
           name: user.name,
           email: user.email,
           role: user.role,
+          additionalRoles: user.additionalRoles || [],
           department: user.department,
           club: user.club,
           canPost: user.canPost,
@@ -143,6 +162,7 @@ router.get('/me', protect, async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        additionalRoles: user.additionalRoles || [],
         department: user.department,
         club: user.club,
         canPost: user.canPost,

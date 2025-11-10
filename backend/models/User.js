@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'faculty', 'club_member', 'admin'],
     default: 'student',
   },
+  additionalRoles: [{
+    type: String,
+    enum: ['club_member', 'club_head'],
+  }],
   department: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Department',

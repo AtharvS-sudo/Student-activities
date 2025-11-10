@@ -11,7 +11,10 @@ import Dashboard from './pages/Dashboard';
 import AcademicNotices from './pages/AcademicNotices';
 import ClubActivities from './pages/ClubActivities';
 import CreateNotice from './pages/CreateNotice';
+import EditNotice from './pages/EditNotice';
 import NoticeDetail from './pages/NoticeDetail';
+import Profile from './pages/Profile';
+import ManageClub from './pages/ManageClub';
 import AdminPanel from './pages/AdminPanel';
 
 function App() {
@@ -28,7 +31,10 @@ function App() {
               <Route path="/academic" element={<><Navbar /><AcademicNotices /></>} />
               <Route path="/clubs" element={<><Navbar /><ClubActivities /></>} />
               <Route path="/notice/:id" element={<><Navbar /><NoticeDetail /></>} />
+              <Route path="/notice/:id/edit" element={<><Navbar /><EditNotice /></>} />
               <Route path="/create-notice" element={<><Navbar /><CreateNotice /></>} />
+              <Route path="/profile" element={<><Navbar /><Profile /></>} />
+              <Route path="/manage-club" element={<><Navbar /><ManageClub /></>} />
               <Route path="/admin" element={<><Navbar /><AdminPanel /></>} />
             </Route>
           </Routes>

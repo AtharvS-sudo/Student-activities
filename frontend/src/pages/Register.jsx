@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import { useAuth, useDepartments, useClubs, useForm } from '../hooks';
 import { FiUser, FiMail, FiLock, FiBook, FiUsers } from 'react-icons/fi';
+import styles from '../styles/Auth.module.css';
 
 const Register = () => {
-  const [formData, setFormData] = useState({
+  const { values: formData, handleChange } = useForm({
     name: '',
     email: '',
     password: '',
@@ -13,42 +13,13 @@ const Register = () => {
     department: '',
     club: '',
   });
-  const [departments, setDepartments] = useState([]);
-  const [clubs, setClubs] = useState([]);
+  
+  const { departments } = useDepartments();
+  const { clubs } = useClubs();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { register } = useAuth();
-
-  useEffect(() => {
-    fetchDepartments();
-    fetchClubs();
-  }, []);
-
-  const fetchDepartments = async () => {
-    try {
-      const response = await api.get('/departments');
-      setDepartments(response.data.departments);
-    } catch (error) {
-      console.error('Error fetching departments:', error);
-    }
-  };
-
-  const fetchClubs = async () => {
-    try {
-      const response = await api.get('/clubs');
-      setClubs(response.data.clubs);
-    } catch (error) {
-      console.error('Error fetching clubs:', error);
-    }
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,16 +53,16 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>Create Account</h2>
-        <p>Join Student Activities today</p>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h2 className={styles.title}>Create Account</h2>
+        <p className={styles.subtitle}>Join Student Activities today</p>
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && <div className={`${styles.alert} ${styles.alertError}`}>{error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2c3e50' }}>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
               <FiUser size={18} color="#2a5298" />
               Full Name
             </label>
@@ -102,11 +73,12 @@ const Register = () => {
               onChange={handleChange}
               placeholder="John Doe"
               required
+              className={styles.input}
             />
           </div>
 
-          <div className="form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2c3e50' }}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
               <FiMail size={18} color="#2a5298" />
               Email Address
             </label>
@@ -117,11 +89,12 @@ const Register = () => {
               onChange={handleChange}
               placeholder="your@email.com"
               required
+              className={styles.input}
             />
           </div>
 
-          <div className="form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2c3e50' }}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
               <FiLock size={18} color="#2a5298" />
               Password
             </label>
@@ -133,27 +106,38 @@ const Register = () => {
               placeholder="••••••••"
               required
               minLength={6}
+              className={styles.input}
             />
           </div>
 
-          <div className="form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2c3e50' }}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
               <FiUsers size={18} color="#2a5298" />
               User Role
             </label>
-            <select name="role" value={formData.role} onChange={handleChange} required>
+            <select 
+              name="role" 
+              value={formData.role} 
+              onChange={handleChange} 
+              required
+              className={styles.select}
+            >
               <option value="student">Student</option>
               <option value="faculty">Faculty</option>
-              <option value="club_member">Club Member</option>
             </select>
           </div>
 
-          <div className="form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2c3e50' }}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
               <FiBook size={18} color="#2a5298" />
               Department (Optional)
             </label>
-            <select name="department" value={formData.department} onChange={handleChange}>
+            <select 
+              name="department" 
+              value={formData.department} 
+              onChange={handleChange}
+              className={styles.select}
+            >
               <option value="">Select Department</option>
               {departments.map((dept) => (
                 <option key={dept._id} value={dept._id}>
@@ -163,34 +147,18 @@ const Register = () => {
             </select>
           </div>
 
-          <div className="form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2c3e50' }}>
-              <FiUsers size={18} color="#2a5298" />
-              Club (Optional)
-            </label>
-            <select name="club" value={formData.club} onChange={handleChange}>
-              <option value="">Select Club</option>
-              {clubs.map((club) => (
-                <option key={club._id} value={club._id}>
-                  {club.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
           <button
             type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%', justifyContent: 'center' }}
+            className={styles.submitButton}
             disabled={loading}
           >
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 
-        <p style={{ marginTop: '20px', textAlign: 'center', color: '#666', fontSize: '14px' }}>
+        <p className={styles.footer}>
           Already have an account?{' '}
-          <Link to="/">Sign in</Link>
+          <Link to="/" className={styles.link}>Sign in</Link>
         </p>
       </div>
     </div>

@@ -1,0 +1,141 @@
+.container {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  background: white;
+  border-radius: 10px;
+  padding: 50px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8ecf1;
+}
+
+.title {
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #1e3c72;
+  font-weight: 700;
+}
+
+.alert {
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.alertError {
+  border-left: 4px solid #f44336;
+  background: #ffebee;
+  color: #c62828;
+}
+
+.alertSuccess {
+  border-left: 4px solid #4caf50;
+  background: #f1f8e9;
+  color: #2e7d32;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroup {
+  margin-bottom: 24px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid #d5dce0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  background: #ffffff;
+  color: #2c3e50;
+  transition: all 0.2s;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #2a5298;
+  box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+}
+
+.textarea {
+  min-height: 200px;
+  resize: vertical;
+}
+
+.fileInput {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid #d5dce0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  background: #ffffff;
+  color: #2c3e50;
+  cursor: pointer;
+}
+
+.fileInfo {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #28a745;
+  font-weight: 500;
+}
+
+.fileHint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #888;
+  font-style: italic;
+}
+
+.submitButton {
+  padding: 14px 32px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  min-width: 200px;
+  transition: all 0.3s;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1a3561 0%, #1f467a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 24px;
+  }
+
+  .submitButton {
+    width: 100%;
+  }
+}

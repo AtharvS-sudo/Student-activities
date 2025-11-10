@@ -11,6 +11,7 @@ const userRoutes = require('./routes/users');
 const noticeRoutes = require('./routes/notices');
 const departmentRoutes = require('./routes/departments');
 const clubRoutes = require('./routes/clubs');
+const clubApplicationRoutes = require('./routes/clubApplications');
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/notices', noticeRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/clubs', clubRoutes);
+app.use('/api/club-applications', clubApplicationRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });

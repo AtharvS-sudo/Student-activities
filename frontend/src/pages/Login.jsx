@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, useForm } from '../hooks';
 import { FiMail, FiLock } from 'react-icons/fi';
+import styles from '../styles/Auth.module.css';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
+  const { values: formData, handleChange } = useForm({
     email: '',
     password: '',
   });
@@ -12,13 +13,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,6 +22,12 @@ const Login = () => {
     const result = await login(formData.email, formData.password);
 
     if (result.success) {
+      // Check if faculty user has valid email domain
+      if (result.user?.role === 'faculty' && !formData.email.endsWith('@vit.edu')) {
+        setError('Faculty email must end with @vit.edu');
+        setLoading(false);
+        return;
+      }
       navigate('/dashboard');
     } else {
       setError(result.message);
@@ -37,16 +37,16 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>Welcome Back</h2>
-        <p>Sign in to your Student Activities account</p>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h2 className={styles.title}>Welcome Back</h2>
+        <p className={styles.subtitle}>Sign in to your Student Activities account</p>
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && <div className={`${styles.alert} ${styles.alertError}`}>{error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2c3e50' }}>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
               <FiMail size={18} color="#2a5298" />
               Email Address
             </label>
@@ -57,11 +57,12 @@ const Login = () => {
               onChange={handleChange}
               placeholder="your@email.com"
               required
+              className={styles.input}
             />
           </div>
 
-          <div className="form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2c3e50' }}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
               <FiLock size={18} color="#2a5298" />
               Password
             </label>
@@ -72,22 +73,22 @@ const Login = () => {
               onChange={handleChange}
               placeholder="••••••••"
               required
+              className={styles.input}
             />
           </div>
 
           <button
             type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%', justifyContent: 'center' }}
+            className={styles.submitButton}
             disabled={loading}
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <p style={{ marginTop: '20px', textAlign: 'center', color: '#666', fontSize: '14px' }}>
+        <p className={styles.footer}>
           Don't have an account?{' '}
-          <Link to="/register">Create one</Link>
+          <Link to="/register" className={styles.link}>Create one</Link>
         </p>
       </div>
     </div>
