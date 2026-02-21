@@ -143,12 +143,8 @@ student-activities/
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License
-
-This project is licensed under the MIT License.
 
 ## Contact
 
-Your Name - your.email@example.com
+atharva.sawale23@vit.edu
 
-Project Link: [https://github.com/yourusername/student-activities](https://github.com/yourusername/student-activities)
