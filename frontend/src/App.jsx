@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Layout/Navbar';
 
 // Pages
+import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -16,6 +17,8 @@ import NoticeDetail from './pages/NoticeDetail';
 import Profile from './pages/Profile';
 import ManageClub from './pages/ManageClub';
 import AdminPanel from './pages/AdminPanel';
+import ActivityLogs from './pages/ActivityLogs';
+import ClubChat from './pages/ClubChat';
 
 function App() {
   return (
@@ -23,7 +26,8 @@ function App() {
       <Router>
         <div className="App">
           <Routes>
-            <Route path="/" element={<Login />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
             <Route element={<ProtectedRoute />}>
@@ -36,6 +40,8 @@ function App() {
               <Route path="/profile" element={<><Navbar /><Profile /></>} />
               <Route path="/manage-club" element={<><Navbar /><ManageClub /></>} />
               <Route path="/admin" element={<><Navbar /><AdminPanel /></>} />
+              <Route path="/activity-logs" element={<><Navbar /><ActivityLogs /></>} />
+              <Route path="/club-chat" element={<><Navbar /><ClubChat /></>} />
             </Route>
           </Routes>
         </div>

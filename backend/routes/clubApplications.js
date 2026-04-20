@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ClubApplication = require('../models/ClubApplication');
 const { protect, authorize } = require('../middleware/auth');
+const { logActivity } = require('../middleware/activityLogger');
 
 // Get all applications (admin only)
 router.get('/', protect, authorize('admin'), async (req, res) => {
@@ -118,6 +119,14 @@ router.post('/', protect, async (req, res) => {
     const populatedApplication = await ClubApplication.findById(application._id)
       .populate('club', 'name category description');
 
+    // Log activity
+    await logActivity(req, 'apply_club', {
+      resourceType: 'application',
+      resourceId: application._id,
+      details: `Applied to club: ${populatedApplication.club.name}`,
+      statusCode: 201,
+    });
+
     res.status(201).json({
       success: true,
       application: populatedApplication,
@@ -208,6 +217,15 @@ router.patch('/:id', protect, async (req, res) => {
       .populate('club', 'name category')
       .populate('student', 'name email department')
       .populate('reviewedBy', 'name');
+
+    // Log activity
+    const action = status === 'approved' ? 'approve_application' : 'reject_application';
+    await logActivity(req, action, {
+      resourceType: 'application',
+      resourceId: application._id,
+      details: `${status === 'approved' ? 'Approved' : 'Rejected'} club application for ${updatedApplication.student.name}`,
+      statusCode: 200,
+    });
 
     res.json({
       success: true,

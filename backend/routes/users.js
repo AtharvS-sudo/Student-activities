@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
+const { logActivity } = require('../middleware/activityLogger');
 
 router.get('/', protect, authorize('admin'), async (req, res) => {
   try {
@@ -76,6 +77,14 @@ router.put('/:id/role', protect, authorize('admin'), async (req, res) => {
       });
     }
 
+    // Log activity
+    await logActivity(req, 'change_user_role', {
+      resourceType: 'user',
+      resourceId: user._id,
+      details: `Changed role for ${user.name} to ${role}`,
+      statusCode: 200,
+    });
+
     res.json({
       success: true,
       user,
@@ -124,6 +133,14 @@ router.put('/:id/additional-roles', protect, authorize('admin'), async (req, res
         message: 'User not found',
       });
     }
+
+    // Log activity
+    await logActivity(req, 'change_user_role', {
+      resourceType: 'user',
+      resourceId: user._id,
+      details: `Updated additional roles for ${user.name}: ${additionalRoles.join(', ')}`,
+      statusCode: 200,
+    });
 
     res.json({
       success: true,
@@ -244,9 +261,18 @@ router.delete('/club-members/:userId', protect, async (req, res) => {
     }
 
     // Remove club_member from additionalRoles and unassign club
+    const clubName = member.club.name;
     member.additionalRoles = member.additionalRoles.filter(role => role !== 'club_member');
     member.club = null;
     await member.save();
+
+    // Log activity
+    await logActivity(req, 'remove_member', {
+      resourceType: 'user',
+      resourceId: member._id,
+      details: `Removed ${member.name} from club ${clubName}`,
+      statusCode: 200,
+    });
 
     res.json({
       success: true,
@@ -280,7 +306,17 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
       });
     }
 
+    const userName = user.name;
+    const userEmail = user.email;
     await user.deleteOne();
+
+    // Log activity
+    await logActivity(req, 'delete_user', {
+      resourceType: 'user',
+      resourceId: req.params.id,
+      details: `Deleted user: ${userName} (${userEmail})`,
+      statusCode: 200,
+    });
 
     res.json({
       success: true,

@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
+const { logActivity } = require('../middleware/activityLogger');
+const { authRateLimiter } = require('../middleware/rateLimiter');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -13,6 +15,7 @@ const generateToken = (id) => {
 
 router.post(
   '/register',
+  authRateLimiter,
   [
     body('name').notEmpty().withMessage('Name is required'),
     body('email').isEmail().withMessage('Please provide a valid email'),
@@ -60,6 +63,23 @@ router.post(
 
       const token = generateToken(user._id);
 
+      // Log registration activity
+      const tempReq = { 
+        ...req, 
+        user: { id: user._id, email: user.email },
+        headers: req.headers || {},
+        method: req.method || 'POST',
+        originalUrl: req.originalUrl || req.url || '/api/auth/register',
+        connection: req.connection,
+        socket: req.socket
+      };
+      await logActivity(tempReq, 'register', {
+        resourceType: 'auth',
+        resourceId: user._id,
+        details: `New user registered: ${user.email} as ${user.role}`,
+        statusCode: 201,
+      });
+
       res.status(201).json({
         success: true,
         token,
@@ -83,6 +103,7 @@ router.post(
 
 router.post(
   '/login',
+  authRateLimiter,
   [
     body('email').isEmail().withMessage('Please provide a valid email'),
     body('password').notEmpty().withMessage('Password is required'),
@@ -110,6 +131,22 @@ router.post(
 
       const isMatch = await user.matchPassword(password);
       if (!isMatch) {
+        // Create a temporary req object with user for logging
+        const tempReq = { 
+          ...req, 
+          user: { id: user._id, email: user.email },
+          headers: req.headers || {},
+          method: req.method || 'POST',
+          originalUrl: req.originalUrl || req.url || '/api/auth/login',
+          connection: req.connection,
+          socket: req.socket
+        };
+        await logActivity(tempReq, 'failed_login', {
+          resourceType: 'auth',
+          resourceId: user._id,
+          details: `Failed login attempt - wrong password for: ${email}`,
+          statusCode: 401,
+        });
         return res.status(401).json({
           success: false,
           message: 'Invalid credentials',
@@ -125,6 +162,23 @@ router.post(
       }
 
       const token = generateToken(user._id);
+
+      // Log successful login
+      const tempReq = { 
+        ...req, 
+        user: { id: user._id, email: user.email },
+        headers: req.headers || {},
+        method: req.method || 'POST',
+        originalUrl: req.originalUrl || req.url || '/api/auth/login',
+        connection: req.connection,
+        socket: req.socket
+      };
+      await logActivity(tempReq, 'login', {
+        resourceType: 'auth',
+        resourceId: user._id,
+        details: `User logged in: ${user.email}`,
+        statusCode: 200,
+      });
 
       res.json({
         success: true,
@@ -176,5 +230,26 @@ router.get('/me', protect, async (req, res) => {
   }
 });
 
+router.post('/logout', protect, async (req, res) => {
+  try {
+    // Log logout activity
+    await logActivity(req, 'logout', {
+      resourceType: 'auth',
+      resourceId: req.user.id,
+      details: `User logged out: ${req.user.email}`,
+      statusCode: 200,
+    });
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 
 module.exports = router;

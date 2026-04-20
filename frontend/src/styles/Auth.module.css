@@ -4,22 +4,7 @@
   justify-content: center;
   min-height: 100vh;
   padding: 20px;
-  background-image: url('../assets/student-life-bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-}
-
-.container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(3px);
+  background: linear-gradient(135deg, #f8f9fa 0%, #e8ecf1 100%);
 }
 
 .card {
@@ -28,10 +13,8 @@
   padding: 40px;
   max-width: 450px;
   width: 100%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   border: 1px solid #e8ecf1;
-  position: relative;
-  z-index: 1;
 }
 
 .title {

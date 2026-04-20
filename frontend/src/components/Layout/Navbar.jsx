@@ -7,8 +7,8 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
@@ -22,6 +22,10 @@ const Navbar = () => {
         <Link to="/academic">Academic</Link>
         <Link to="/clubs">Clubs</Link>
         
+        {user.club && user.additionalRoles && user.additionalRoles.includes('club_member') && (
+          <Link to="/club-chat">Club Chat</Link>
+        )}
+        
         {(user.role === 'admin' || user.role === 'faculty' || user.role === 'club_member' || user.canPost || (user.additionalRoles && user.additionalRoles.includes('club_head'))) && (
           <Link to="/create-notice">Create Notice</Link>
         )}
@@ -31,6 +35,8 @@ const Navbar = () => {
         )}
         
         {user.role === 'admin' && <Link to="/admin">Admin</Link>}
+        
+        <Link to="/activity-logs">Activity Logs</Link>
         
         <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <FiUser size={16} />

@@ -3,6 +3,8 @@ const router = express.Router();
 const Notice = require('../models/Notice');
 const { protect, authorize, canPost } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const { logActivity } = require('../middleware/activityLogger');
+const { uploadRateLimiter } = require('../middleware/rateLimiter');
 
 // Get all notices (pinned first)
 router.get('/', protect, async (req, res) => {
@@ -101,7 +103,7 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 // Create notice
-router.post('/', protect, canPost, upload.single('pdfFile'), async (req, res) => {
+router.post('/', protect, canPost, uploadRateLimiter, upload.single('pdfFile'), async (req, res) => {
   try {
     const { title, content, type, format, department, club } = req.body;
 
@@ -141,6 +143,14 @@ router.post('/', protect, canPost, upload.single('pdfFile'), async (req, res) =>
       .populate('postedBy', 'name role')
       .populate('department', 'name code')
       .populate('club', 'name category');
+
+    // Log activity
+    await logActivity(req, 'create_notice', {
+      resourceType: 'notice',
+      resourceId: notice._id,
+      details: `Created ${type} notice: ${title}`,
+      statusCode: 201,
+    });
 
     res.status(201).json({
       success: true,
@@ -188,6 +198,14 @@ router.put('/:id', protect, canPost, async (req, res) => {
       .populate('department', 'name code')
       .populate('club', 'name category');
 
+    // Log activity
+    await logActivity(req, 'edit_notice', {
+      resourceType: 'notice',
+      resourceId: notice._id,
+      details: `Edited notice: ${notice.title}`,
+      statusCode: 200,
+    });
+
     res.json({
       success: true,
       message: 'Notice updated successfully',
@@ -221,6 +239,14 @@ router.patch('/:id/pin', protect, authorize('admin'), async (req, res) => {
       .populate('department', 'name code')
       .populate('club', 'name category');
 
+    // Log activity
+    await logActivity(req, 'pin_notice', {
+      resourceType: 'notice',
+      resourceId: notice._id,
+      details: `${notice.isPinned ? 'Pinned' : 'Unpinned'} notice: ${notice.title}`,
+      statusCode: 200,
+    });
+
     res.json({
       success: true,
       message: `Notice ${notice.isPinned ? 'pinned' : 'unpinned'} successfully`,
@@ -253,7 +279,16 @@ router.delete('/:id', protect, async (req, res) => {
       });
     }
 
+    const noticeTitle = notice.title;
     await notice.deleteOne();
+
+    // Log activity
+    await logActivity(req, 'delete_notice', {
+      resourceType: 'notice',
+      resourceId: req.params.id,
+      details: `Deleted notice: ${noticeTitle}`,
+      statusCode: 200,
+    });
 
     res.json({
       success: true,
